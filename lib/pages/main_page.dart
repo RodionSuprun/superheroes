@@ -67,6 +67,7 @@ class SearchWidget extends StatefulWidget {
 
 class _SearchWidgetState extends State<SearchWidget> {
   final TextEditingController controller = TextEditingController();
+  final FocusNode focusNode = FocusNode();
 
   BorderSide borderSide = const BorderSide(color: Colors.white24);
 
@@ -78,15 +79,22 @@ class _SearchWidgetState extends State<SearchWidget> {
       final MainBloc bloc = Provider.of<MainBloc>(context, listen: false);
       controller.addListener(() {
         bloc.updateText(controller.text);
-
-        setState(() {
-          if (controller.text.isNotEmpty) {
-            borderSide = const BorderSide(color: Colors.white, width: 2);
-          } else {
+        if (!focusNode.hasFocus && controller.text.isEmpty) {
+          setState(() {
             borderSide = const BorderSide(color: Colors.white24);
-          }
-        });
+          });
+        }
       });
+    });
+
+    focusNode.addListener(() {
+      if (!focusNode.hasFocus) {
+        if (controller.text.isNotEmpty) {
+          setState(() {
+            borderSide = const BorderSide(color: Colors.white, width: 2);
+          });
+        }
+      }
     });
   }
 
@@ -94,6 +102,7 @@ class _SearchWidgetState extends State<SearchWidget> {
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       cursorColor: Colors.white,
       textInputAction: TextInputAction.search,
       textCapitalization: TextCapitalization.words,
@@ -133,6 +142,12 @@ class _SearchWidgetState extends State<SearchWidget> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
   }
 }
 
