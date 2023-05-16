@@ -171,7 +171,80 @@ class SuperheroInfo {
         name: "Venom",
         realName: "Eddie Brock",
         imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg")
+            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
+    SuperheroInfo(
+        name: "Batman",
+        realName: "Bruce Wayne",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
+    SuperheroInfo(
+        name: "Ironman",
+        realName: "Tony Stark",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
+    SuperheroInfo(
+        name: "Venom",
+        realName: "Eddie Brock",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),SuperheroInfo(
+        name: "Batman",
+        realName: "Bruce Wayne",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
+    SuperheroInfo(
+        name: "Ironman",
+        realName: "Tony Stark",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
+    SuperheroInfo(
+        name: "Venom",
+        realName: "Eddie Brock",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
+    SuperheroInfo(
+        name: "Batman",
+        realName: "Bruce Wayne",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
+    SuperheroInfo(
+        name: "Ironman",
+        realName: "Tony Stark",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
+    SuperheroInfo(
+        name: "Venom",
+        realName: "Eddie Brock",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
+    SuperheroInfo(
+        name: "Batman",
+        realName: "Bruce Wayne",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
+    SuperheroInfo(
+        name: "Ironman",
+        realName: "Tony Stark",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
+    SuperheroInfo(
+        name: "Venom",
+        realName: "Eddie Brock",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),SuperheroInfo(
+        name: "Batman",
+        realName: "Bruce Wayne",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
+    SuperheroInfo(
+        name: "Ironman",
+        realName: "Tony Stark",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
+    SuperheroInfo(
+        name: "Venom",
+        realName: "Eddie Brock",
+        imageUrl:
+        "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg")
   ];
 }
 

@@ -69,6 +69,8 @@ class _SearchWidgetState extends State<SearchWidget> {
   final TextEditingController controller = TextEditingController();
   final FocusNode focusNode = FocusNode();
 
+  BorderSide white24BorderSide = const BorderSide(color: Colors.white24);
+  BorderSide whiteBorderSide = const BorderSide(color: Colors.white, width: 2);
   BorderSide borderSide = const BorderSide(color: Colors.white24);
 
   @override
@@ -89,11 +91,21 @@ class _SearchWidgetState extends State<SearchWidget> {
 
     focusNode.addListener(() {
       if (!focusNode.hasFocus) {
-        if (controller.text.isNotEmpty) {
-          setState(() {
-            borderSide = const BorderSide(color: Colors.white, width: 2);
-          });
-        }
+
+          if (controller.text.isNotEmpty) {
+            if (borderSide != whiteBorderSide) {
+              setState(() {
+                borderSide = const BorderSide(color: Colors.white, width: 2);
+              });
+            }
+          } else {
+            if (borderSide != white24BorderSide) {
+              setState(() {
+                borderSide = const BorderSide(color: Colors.white24);
+              });
+            }
+
+          }
       }
     });
   }
