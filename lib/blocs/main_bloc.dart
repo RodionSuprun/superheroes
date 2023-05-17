@@ -98,16 +98,6 @@ class MainBloc {
       list.removeLast();
       favouriteSuperherosSubject.add(list);
     }
-    // favouriteSubscription = favouriteSuperherosSubject.listen((value) {
-    //     if (value.isEmpty) {
-    //       favouriteSuperherosSubject.add(SuperheroInfo.mocked);
-    //     } else {
-    //       List<SuperheroInfo> list = value.toList();
-    //       list.removeLast();
-    //       favouriteSuperherosSubject.add(list);
-    //     }
-    //     favouriteSubscription?.cancel();
-    // });
   }
 
   void dispose() {

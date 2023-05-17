@@ -67,11 +67,8 @@ class SearchWidget extends StatefulWidget {
 
 class _SearchWidgetState extends State<SearchWidget> {
   final TextEditingController controller = TextEditingController();
-  final FocusNode focusNode = FocusNode();
 
-  BorderSide white24BorderSide = const BorderSide(color: Colors.white24);
-  BorderSide whiteBorderSide = const BorderSide(color: Colors.white, width: 2);
-  BorderSide borderSide = const BorderSide(color: Colors.white24);
+  bool haveSearchedText = false;
 
   @override
   void initState() {
@@ -81,32 +78,13 @@ class _SearchWidgetState extends State<SearchWidget> {
       final MainBloc bloc = Provider.of<MainBloc>(context, listen: false);
       controller.addListener(() {
         bloc.updateText(controller.text);
-        if (!focusNode.hasFocus && controller.text.isEmpty) {
+        final haveText = controller.text.isNotEmpty;
+        if (haveSearchedText != haveText) {
           setState(() {
-            borderSide = const BorderSide(color: Colors.white24);
+            haveSearchedText = haveText;
           });
         }
       });
-    });
-
-    focusNode.addListener(() {
-      if (!focusNode.hasFocus) {
-
-          if (controller.text.isNotEmpty) {
-            if (borderSide != whiteBorderSide) {
-              setState(() {
-                borderSide = const BorderSide(color: Colors.white, width: 2);
-              });
-            }
-          } else {
-            if (borderSide != white24BorderSide) {
-              setState(() {
-                borderSide = const BorderSide(color: Colors.white24);
-              });
-            }
-
-          }
-      }
     });
   }
 
@@ -114,7 +92,6 @@ class _SearchWidgetState extends State<SearchWidget> {
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
-      focusNode: focusNode,
       cursorColor: Colors.white,
       textInputAction: TextInputAction.search,
       textCapitalization: TextCapitalization.words,
@@ -146,7 +123,9 @@ class _SearchWidgetState extends State<SearchWidget> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: borderSide,
+          borderSide: haveSearchedText
+              ? const BorderSide(color: Colors.white, width: 2)
+              : const BorderSide(color: Colors.white24),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -154,12 +133,6 @@ class _SearchWidgetState extends State<SearchWidget> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    focusNode.dispose();
-    super.dispose();
   }
 }
 
