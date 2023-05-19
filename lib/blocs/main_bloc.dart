@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:http/http.dart' as http;
+import 'package:superheroes/model/superhero.dart';
 
 class MainBloc {
   static const minSymbols = 3;
@@ -18,11 +22,13 @@ class MainBloc {
   StreamSubscription? searchSubscription;
   StreamSubscription? favouriteSubscription;
 
+  http.Client? client;
+
   Stream<MainPageState> observeMainPageState() {
     return stateSubject;
   }
 
-  MainBloc() {
+  MainBloc({this.client}) {
     stateSubject.add(MainPageState.noFavorites);
     textSubscription =
         Rx.combineLatest2<String, List<SuperheroInfo>, MainPageStateInfo>(
@@ -70,11 +76,28 @@ class MainBloc {
       searchedSuperherosSubject;
 
   Future<List<SuperheroInfo>> search(final String text) async {
-    await Future.delayed(const Duration(seconds: 1));
-    List<SuperheroInfo> list = SuperheroInfo.mocked.where((element) {
-      return element.name.toLowerCase().contains(text.toLowerCase());
-    }).toList();
-    return list;
+    final token = dotenv.env["SUPERHERO_TOKEN"];
+    final response = await (client ??= http.Client())
+        .get(Uri.parse("https://superheroapi.com/api/$token/search/$text"));
+    final decoded = json.decode(response.body);
+    if (decoded['response'] == 'success') {
+      final List<dynamic> results = decoded['results'];
+      final List<Superhero> superheroes = results.map((rawSuperhero) {
+        return Superhero.fromJson(rawSuperhero);
+      }).toList();
+      final List<SuperheroInfo> found = superheroes.map((superhero) {
+        return SuperheroInfo(
+            name: superhero.name,
+            realName: superhero.biography.fullName,
+            imageUrl: superhero.image.url);
+      }).toList();
+      return found;
+    } else if (decoded['response'] == 'error') {
+      if (decoded['error'] == 'character with given name not found') {
+        return [];
+      }
+    }
+    throw Exception("Unknown error happened");
   }
 
   void nextState() {
@@ -90,7 +113,6 @@ class MainBloc {
   }
 
   void removeFavorite() {
-
     if (favouriteSuperherosSubject.value.isEmpty) {
       favouriteSuperherosSubject.add(SuperheroInfo.mocked);
     } else {
@@ -108,6 +130,7 @@ class MainBloc {
     textSubscription?.cancel();
     searchSubscription?.cancel();
     favouriteSubscription?.cancel();
+    client?.close();
   }
 }
 
@@ -166,75 +189,77 @@ class SuperheroInfo {
         name: "Batman",
         realName: "Bruce Wayne",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
+            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
     SuperheroInfo(
         name: "Ironman",
         realName: "Tony Stark",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
+            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
     SuperheroInfo(
         name: "Venom",
         realName: "Eddie Brock",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),SuperheroInfo(
-        name: "Batman",
-        realName: "Bruce Wayne",
-        imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
-    SuperheroInfo(
-        name: "Ironman",
-        realName: "Tony Stark",
-        imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
-    SuperheroInfo(
-        name: "Venom",
-        realName: "Eddie Brock",
-        imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
+            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
     SuperheroInfo(
         name: "Batman",
         realName: "Bruce Wayne",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
+            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
     SuperheroInfo(
         name: "Ironman",
         realName: "Tony Stark",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
+            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
     SuperheroInfo(
         name: "Venom",
         realName: "Eddie Brock",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
+            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
     SuperheroInfo(
         name: "Batman",
         realName: "Bruce Wayne",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
+            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
     SuperheroInfo(
         name: "Ironman",
         realName: "Tony Stark",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
+            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
     SuperheroInfo(
         name: "Venom",
         realName: "Eddie Brock",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),SuperheroInfo(
+            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
+    SuperheroInfo(
         name: "Batman",
         realName: "Bruce Wayne",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
+            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
     SuperheroInfo(
         name: "Ironman",
         realName: "Tony Stark",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
+            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
     SuperheroInfo(
         name: "Venom",
         realName: "Eddie Brock",
         imageUrl:
-        "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg")
+            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
+    SuperheroInfo(
+        name: "Batman",
+        realName: "Bruce Wayne",
+        imageUrl:
+            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
+    SuperheroInfo(
+        name: "Ironman",
+        realName: "Tony Stark",
+        imageUrl:
+            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
+    SuperheroInfo(
+        name: "Venom",
+        realName: "Eddie Brock",
+        imageUrl:
+            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg")
   ];
 }
 

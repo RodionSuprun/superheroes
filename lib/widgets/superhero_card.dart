@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:superheroes/blocs/main_bloc.dart';
 import 'package:superheroes/resources/superheroes_colors.dart';
@@ -6,7 +7,8 @@ class SuperheroCard extends StatelessWidget {
   final SuperheroInfo superheroInfo;
   final VoidCallback onTap;
 
-  const SuperheroCard({Key? key, required this.superheroInfo, required this.onTap})
+  const SuperheroCard(
+      {Key? key, required this.superheroInfo, required this.onTap})
       : super(key: key);
 
   @override
@@ -21,11 +23,11 @@ class SuperheroCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8)),
         child: Row(
           children: [
-            Image.network(
-              superheroInfo.imageUrl,
+            CachedNetworkImage(
+              imageUrl: superheroInfo.imageUrl,
               fit: BoxFit.cover,
-              height: 70,
               width: 70,
+              height: 70,
             ),
             const SizedBox(
               width: 12,
