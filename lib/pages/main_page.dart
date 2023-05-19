@@ -53,7 +53,7 @@ class MainPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      children: const [
+      children: [
         MainPageStateWidget(),
         Padding(
           padding: EdgeInsets.only(top: 12, left: 16, right: 16),
@@ -75,6 +75,7 @@ class SearchWidget extends StatefulWidget {
 
 class _SearchWidgetState extends State<SearchWidget> {
   final TextEditingController controller = TextEditingController();
+  final FocusNode focusNode = FocusNode();
 
   bool haveSearchedText = false;
 
@@ -84,6 +85,11 @@ class _SearchWidgetState extends State<SearchWidget> {
 
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       final MainBloc bloc = Provider.of<MainBloc>(context, listen: false);
+      bloc.observeRequestFocus().listen((event) {
+        if (event == true) {
+          focusNode.requestFocus();
+        }
+      });
       controller.addListener(() {
         bloc.updateText(controller.text);
         final haveText = controller.text.isNotEmpty;
@@ -99,6 +105,7 @@ class _SearchWidgetState extends State<SearchWidget> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      focusNode: focusNode,
       controller: controller,
       cursorColor: Colors.white,
       textInputAction: TextInputAction.search,
@@ -165,14 +172,18 @@ class MainPageStateWidget extends StatelessWidget {
             case MainPageState.noFavorites:
               return Stack(
                 children: [
-                  const InfoWithButton(
-                      title: "No favorites yet",
-                      subtitle: "Search and add",
-                      buttonText: "Search",
-                      assetImage: SuperheroesImages.ironmanImage,
-                      imageHeight: 119,
-                      imageWidth: 108,
-                      imageTopPadding: 9),
+                  InfoWithButton(
+                    title: "No favorites yet",
+                    subtitle: "Search and add",
+                    buttonText: "Search",
+                    assetImage: SuperheroesImages.ironmanImage,
+                    imageHeight: 119,
+                    imageWidth: 108,
+                    imageTopPadding: 9,
+                    onTap: () {
+                      bloc.requestFocus();
+                    },
+                  ),
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
@@ -212,23 +223,31 @@ class MainPageStateWidget extends StatelessWidget {
                 stream: bloc.observeSearchedSuperhero(),
               );
             case MainPageState.nothingFound:
-              return const InfoWithButton(
-                  title: "Nothing found",
-                  subtitle: "Search for something else",
-                  buttonText: "Search",
-                  assetImage: SuperheroesImages.hulkImage,
-                  imageHeight: 112,
-                  imageWidth: 84,
-                  imageTopPadding: 16);
+              return InfoWithButton(
+                title: "Nothing found",
+                subtitle: "Search for something else",
+                buttonText: "Search",
+                assetImage: SuperheroesImages.hulkImage,
+                imageHeight: 112,
+                imageWidth: 84,
+                imageTopPadding: 16,
+                onTap: () {
+                  bloc.requestFocus();
+                },
+              );
             case MainPageState.loadingError:
-              return const InfoWithButton(
-                  title: "Error happened",
-                  subtitle: "Please, try again",
-                  buttonText: "Retry",
-                  assetImage: SuperheroesImages.supermanImage,
-                  imageHeight: 106,
-                  imageWidth: 126,
-                  imageTopPadding: 22);
+              return InfoWithButton(
+                title: "Error happened",
+                subtitle: "Please, try again",
+                buttonText: "Retry",
+                assetImage: SuperheroesImages.supermanImage,
+                imageHeight: 106,
+                imageWidth: 126,
+                imageTopPadding: 22,
+                onTap: () {
+                  bloc.retry();
+                },
+              );
             default:
               return Center(
                 child: Text(

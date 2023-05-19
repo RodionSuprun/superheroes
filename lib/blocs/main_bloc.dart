@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:http/http.dart' as http;
+import 'package:superheroes/exception/ApiException.dart';
 import 'package:superheroes/model/superhero.dart';
 
 class MainBloc {
@@ -17,6 +18,8 @@ class MainBloc {
   final searchedSuperherosSubject = BehaviorSubject<List<SuperheroInfo>>();
 
   final currentTextSubject = BehaviorSubject<String>.seeded("");
+
+  final requestFocusSubject = BehaviorSubject<bool>();
 
   StreamSubscription? textSubscription;
   StreamSubscription? searchSubscription;
@@ -65,6 +68,7 @@ class MainBloc {
         stateSubject.add(MainPageState.searchResult);
       }
     }, onError: (error, stackTrace) {
+      print("RedDed ${error.toString()}");
       stateSubject.add(MainPageState.loadingError);
     });
   }
@@ -75,11 +79,19 @@ class MainBloc {
   Stream<List<SuperheroInfo>> observeSearchedSuperhero() =>
       searchedSuperherosSubject;
 
+  Stream<bool> observeRequestFocus() =>
+      requestFocusSubject;
+
   Future<List<SuperheroInfo>> search(final String text) async {
     final token = dotenv.env["SUPERHERO_TOKEN"];
     final response = await (client ??= http.Client())
         .get(Uri.parse("https://superheroapi.com/api/$token/search/$text"));
     final decoded = json.decode(response.body);
+    if (500 <= response.statusCode && response.statusCode <= 599) {
+      throw ApiException("Server error happened");
+    } else if (400 <= response.statusCode && response.statusCode <= 499) {
+      throw ApiException("Client error happened");
+    }
     if (decoded['response'] == 'success') {
       final List<dynamic> results = decoded['results'];
       final List<Superhero> superheroes = results.map((rawSuperhero) {
@@ -95,6 +107,8 @@ class MainBloc {
     } else if (decoded['response'] == 'error') {
       if (decoded['error'] == 'character with given name not found') {
         return [];
+      } else {
+        throw ApiException("Client error happened");
       }
     }
     throw Exception("Unknown error happened");
@@ -122,10 +136,19 @@ class MainBloc {
     }
   }
 
+  void requestFocus() {
+    requestFocusSubject.add(true);
+  }
+
+  void retry() {
+    searchForSuperheroes(currentTextSubject.value);
+  }
+
   void dispose() {
     stateSubject.close();
     favouriteSuperherosSubject.close();
     searchedSuperherosSubject.close();
+    requestFocusSubject.close();
     currentTextSubject.close();
     textSubscription?.cancel();
     searchSubscription?.cancel();
