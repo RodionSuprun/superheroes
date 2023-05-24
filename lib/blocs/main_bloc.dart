@@ -78,7 +78,7 @@ class MainBloc {
     return FavouriteSuperheroStorage.getInstance()
         .observeFavoriteSuperheroes()
         .map((superheroes) => superheroes
-            .map((superhero) => SuperheroInfo.formSuperhero(superhero))
+            .map((superhero) => SuperheroInfo.fromSuperhero(superhero))
             .toList());
   }
 
@@ -118,7 +118,7 @@ class MainBloc {
         return Superhero.fromJson(rawSuperhero);
       }).toList();
       final List<SuperheroInfo> found = superheroes.map((superhero) {
-        return SuperheroInfo.formSuperhero(superhero);
+        return SuperheroInfo.fromSuperhero(superhero);
       }).toList();
       return found;
     } else if (decoded['response'] == 'error') {
@@ -188,7 +188,7 @@ class SuperheroInfo {
       required this.imageUrl,
       required this.alignmentInfo});
 
-  factory SuperheroInfo.formSuperhero(Superhero superhero) {
+  factory SuperheroInfo.fromSuperhero(Superhero superhero) {
     return SuperheroInfo(
       id: superhero.id,
       name: superhero.name,

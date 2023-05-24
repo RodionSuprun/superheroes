@@ -322,7 +322,7 @@ class BiographyWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: SuperheroesColors.indigo,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Stack(
         children: [
@@ -342,7 +342,7 @@ class BiographyWidget extends StatelessWidget {
                 ),
                 Center(
                   child: Text(
-                    "Powerstats".toUpperCase(),
+                    "Bio".toUpperCase(),
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -434,10 +434,11 @@ class _AlignmentWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: alignmentInfo.color,
           borderRadius: const BorderRadius.only(
-            bottomRight: Radius.circular(16),
+            bottomRight: Radius.circular(20),
           ),
         ),
         height: 24,
+        width: 70,
         child: Text(
           alignmentInfo.name.toUpperCase(),
           style: const TextStyle(
@@ -487,6 +488,7 @@ class SuperheroAppBar extends StatelessWidget {
                 child: Image.asset(
                   SuperheroesImages.unknownImage,
                   width: 85,
+                  height: 264,
                 ));
           },
         ),

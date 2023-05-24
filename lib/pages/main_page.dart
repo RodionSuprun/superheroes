@@ -320,6 +320,7 @@ class ListTile extends StatelessWidget {
                 ),
                 child: Text(
                   "Remove\nfrom\nfavorites".toUpperCase(),
+                  textAlign: TextAlign.start,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -337,6 +338,7 @@ class ListTile extends StatelessWidget {
                 ),
                 child: Text(
                   "Remove\nfrom\nfavorites".toUpperCase(),
+                  textAlign: TextAlign.end,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,

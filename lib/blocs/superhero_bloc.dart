@@ -11,7 +11,7 @@ import 'package:superheroes/model/superhero.dart';
 class SuperheroBloc {
   http.Client? client;
   final String id;
-  final BehaviorSubject<SuperheroPageState> stateSubject = BehaviorSubject.seeded(SuperheroPageState.loaded);
+  final BehaviorSubject<SuperheroPageState> stateSubject = BehaviorSubject();
   final BehaviorSubject<Superhero> superheroSubject = BehaviorSubject();
   StreamSubscription? requestSubscription;
   StreamSubscription? getFromFavoriteSubscription;
