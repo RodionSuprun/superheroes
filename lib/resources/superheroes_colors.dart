@@ -7,4 +7,10 @@ class SuperheroesColors {
   static const blue = Color.fromRGBO(0, 188, 212, 1);
   static const indigo = Color.fromRGBO(44, 50, 67, 1);
   static const indigo75 = Color.fromRGBO(44, 50, 67, 0.75);
+  static const red = Color.fromRGBO(150, 27, 27, 1);
+  static const grey = Color.fromRGBO(114, 114, 114, 1);
+  static const green = Color.fromRGBO(42, 171, 106, 1);
+
+  static const greyText = Color.fromRGBO(153, 153, 153, 1);
+
 }

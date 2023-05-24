@@ -5,15 +5,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:http/http.dart' as http;
 import 'package:superheroes/exception/ApiException.dart';
+import 'package:superheroes/favourite_superhero_storage.dart';
 import 'package:superheroes/model/superhero.dart';
+
+import '../model/alignment_info.dart';
 
 class MainBloc {
   static const minSymbols = 3;
 
   final BehaviorSubject<MainPageState> stateSubject = BehaviorSubject();
-
-  final favouriteSuperherosSubject =
-      BehaviorSubject<List<SuperheroInfo>>.seeded(SuperheroInfo.mocked);
 
   final searchedSuperherosSubject = BehaviorSubject<List<SuperheroInfo>>();
 
@@ -24,6 +24,7 @@ class MainBloc {
   StreamSubscription? textSubscription;
   StreamSubscription? searchSubscription;
   StreamSubscription? favouriteSubscription;
+  StreamSubscription? removeFromFavoriteSubscription;
 
   http.Client? client;
 
@@ -34,11 +35,11 @@ class MainBloc {
   MainBloc({this.client}) {
     stateSubject.add(MainPageState.noFavorites);
     textSubscription =
-        Rx.combineLatest2<String, List<SuperheroInfo>, MainPageStateInfo>(
+        Rx.combineLatest2<String, List<Superhero>, MainPageStateInfo>(
       currentTextSubject
           .distinct()
           .debounceTime(const Duration(milliseconds: 500)),
-      favouriteSuperherosSubject,
+      FavouriteSuperheroStorage.getInstance().observeFavoriteSuperheroes(),
       (searchedText, favorites) => MainPageStateInfo(
           searchText: searchedText, haveFavorites: favorites.isNotEmpty),
     ).listen((value) {
@@ -73,14 +74,33 @@ class MainBloc {
     });
   }
 
-  Stream<List<SuperheroInfo>> observeFavouriteSuperhero() =>
-      favouriteSuperherosSubject;
+  Stream<List<SuperheroInfo>> observeFavouriteSuperhero() {
+    return FavouriteSuperheroStorage.getInstance()
+        .observeFavoriteSuperheroes()
+        .map((superheroes) => superheroes
+            .map((superhero) => SuperheroInfo.formSuperhero(superhero))
+            .toList());
+  }
+
+  void removeFromFavorites(final String id) {
+    removeFromFavoriteSubscription?.cancel();
+    removeFromFavoriteSubscription = FavouriteSuperheroStorage.getInstance()
+        .removeFromFavourites(id)
+        .asStream()
+        .listen(
+      (event) {
+        print("removeFromFavourite ${event.toString()}");
+      },
+      onError: (error, stackTrace) {
+        print("removeFromFavourite error ${error.toString()}");
+      },
+    );
+  }
 
   Stream<List<SuperheroInfo>> observeSearchedSuperhero() =>
       searchedSuperherosSubject;
 
-  Stream<bool> observeRequestFocus() =>
-      requestFocusSubject;
+  Stream<bool> observeRequestFocus() => requestFocusSubject;
 
   Future<List<SuperheroInfo>> search(final String text) async {
     final token = dotenv.env["SUPERHERO_TOKEN"];
@@ -98,10 +118,7 @@ class MainBloc {
         return Superhero.fromJson(rawSuperhero);
       }).toList();
       final List<SuperheroInfo> found = superheroes.map((superhero) {
-        return SuperheroInfo(
-            name: superhero.name,
-            realName: superhero.biography.fullName,
-            imageUrl: superhero.image.url);
+        return SuperheroInfo.formSuperhero(superhero);
       }).toList();
       return found;
     } else if (decoded['response'] == 'error') {
@@ -126,16 +143,6 @@ class MainBloc {
     currentTextSubject.add(text ?? "");
   }
 
-  void removeFavorite() {
-    if (favouriteSuperherosSubject.value.isEmpty) {
-      favouriteSuperherosSubject.add(SuperheroInfo.mocked);
-    } else {
-      List<SuperheroInfo> list = favouriteSuperherosSubject.value.toList();
-      list.removeLast();
-      favouriteSuperherosSubject.add(list);
-    }
-  }
-
   void requestFocus() {
     requestFocusSubject.add(true);
   }
@@ -146,12 +153,12 @@ class MainBloc {
 
   void dispose() {
     stateSubject.close();
-    favouriteSuperherosSubject.close();
     searchedSuperherosSubject.close();
     requestFocusSubject.close();
     currentTextSubject.close();
     textSubscription?.cancel();
     searchSubscription?.cancel();
+    removeFromFavoriteSubscription?.cancel();
     favouriteSubscription?.cancel();
     client?.close();
   }
@@ -168,16 +175,27 @@ enum MainPageState {
 }
 
 class SuperheroInfo {
+  final String id;
   final String name;
   final String realName;
   final String imageUrl;
+  final AlignmentInfo? alignmentInfo;
 
   const SuperheroInfo(
-      {required this.name, required this.realName, required this.imageUrl});
+      {required this.id,
+      required this.name,
+      required this.realName,
+      required this.imageUrl,
+      required this.alignmentInfo});
 
-  @override
-  String toString() {
-    return 'SuperheroInfo{name: $name, realName: $realName, imageUrl: $imageUrl}';
+  factory SuperheroInfo.formSuperhero(Superhero superhero) {
+    return SuperheroInfo(
+      id: superhero.id,
+      name: superhero.name,
+      realName: superhero.biography.fullName,
+      imageUrl: superhero.image.url,
+      alignmentInfo: superhero.biography.alignmentInfo,
+    );
   }
 
   @override
@@ -185,105 +203,24 @@ class SuperheroInfo {
       identical(this, other) ||
       other is SuperheroInfo &&
           runtimeType == other.runtimeType &&
+          id == other.id &&
           name == other.name &&
           realName == other.realName &&
-          imageUrl == other.imageUrl;
+          imageUrl == other.imageUrl &&
+          alignmentInfo == other.alignmentInfo;
 
   @override
-  int get hashCode => name.hashCode ^ realName.hashCode ^ imageUrl.hashCode;
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      realName.hashCode ^
+      imageUrl.hashCode ^
+      alignmentInfo.hashCode;
 
-  static const mocked = [
-    SuperheroInfo(
-        name: "Batman",
-        realName: "Bruce Wayne",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
-    SuperheroInfo(
-        name: "Ironman",
-        realName: "Tony Stark",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
-    SuperheroInfo(
-        name: "Venom",
-        realName: "Eddie Brock",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
-    SuperheroInfo(
-        name: "Batman",
-        realName: "Bruce Wayne",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
-    SuperheroInfo(
-        name: "Ironman",
-        realName: "Tony Stark",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
-    SuperheroInfo(
-        name: "Venom",
-        realName: "Eddie Brock",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
-    SuperheroInfo(
-        name: "Batman",
-        realName: "Bruce Wayne",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
-    SuperheroInfo(
-        name: "Ironman",
-        realName: "Tony Stark",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
-    SuperheroInfo(
-        name: "Venom",
-        realName: "Eddie Brock",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
-    SuperheroInfo(
-        name: "Batman",
-        realName: "Bruce Wayne",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
-    SuperheroInfo(
-        name: "Ironman",
-        realName: "Tony Stark",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
-    SuperheroInfo(
-        name: "Venom",
-        realName: "Eddie Brock",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
-    SuperheroInfo(
-        name: "Batman",
-        realName: "Bruce Wayne",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
-    SuperheroInfo(
-        name: "Ironman",
-        realName: "Tony Stark",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
-    SuperheroInfo(
-        name: "Venom",
-        realName: "Eddie Brock",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg"),
-    SuperheroInfo(
-        name: "Batman",
-        realName: "Bruce Wayne",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/639.jpg"),
-    SuperheroInfo(
-        name: "Ironman",
-        realName: "Tony Stark",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/85.jpg"),
-    SuperheroInfo(
-        name: "Venom",
-        realName: "Eddie Brock",
-        imageUrl:
-            "https://www.superherodb.com/pictures2/portraits/10/100/22.jpg")
-  ];
+  @override
+  String toString() {
+    return 'SuperheroInfo{id: $id, name: $name, realName: $realName, imageUrl: $imageUrl, alignmentInfo: $alignmentInfo}';
+  }
 }
 
 class MainPageStateInfo {
